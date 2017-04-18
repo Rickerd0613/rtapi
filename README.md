@@ -1,5 +1,9 @@
 # RT Python Module
 
+## Installation
+
+`pip install rtapi`
+
 ## Information
 General Notes:
 - All numbers should be given as strings
