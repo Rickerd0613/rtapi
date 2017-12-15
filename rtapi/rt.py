@@ -1,4 +1,5 @@
 from requests import get, post
+from __future__ import print_function
 import urllib
 
 
@@ -18,7 +19,7 @@ class Connector(object):
         if "200" in r.text:
             return True
         elif "401" in r.text:
-            print "Invalid credentials"
+            print("Invalid credentials")
             return False
 
     def createTicket(self, ticketProperties):
@@ -182,7 +183,7 @@ class Connector(object):
         encoded = "content=" + urllib.quote_plus(content)
         r = post("http://" + self.host + "/REST/1.0/ticket/" + ticketID + "/edit", params=self.credentials,
                  data=encoded)
-        print r.text
+        print(r.text)
 
     def editTicketLinks(self, ticketID, linkProperties):
         """Accepts ticket ID and link properties dictionary as input and returns a response from the server"""
@@ -192,7 +193,7 @@ class Connector(object):
         encoded = "content=" + urllib.quote_plus(content)
         r = post("http://" + self.host + "/REST/1.0/ticket/" + ticketID + "/links", params=self.credentials,
                  data=encoded)
-        print r.text
+        print(r.text)
 
     def getUserProperties(self, userID):
         """Accepts user ID as input and returns a dictionary of user properties"""
@@ -237,14 +238,25 @@ class Connector(object):
             queueProperties[split[0]] = split[1][1:]
         return queueProperties
 
-    def respondTicket(self, ticketID, replyProperties):
-        """Accepts ticket ID and response properties dictionary as input and returns a response from the server"""
+    def respondTicket(self, ticketID, replyProperties, attachments=None):
+        """Accepts ticket ID and response properties dictionary as input and returns a response from the server.
+        Optionally takes an attachments argument in the format of requests files:
+        attachments = {
+            'attachment_1': open('myfile.zip', 'rb'),
+            'attachment_2': ('custom_file_name.zip', open('myfile.zip', 'rb')),
+        }
+        """
         content = ""
         for key, value in replyProperties.iteritems():
             content += key + ": " + value + "\n"
-        encoded = "content=" + urllib.quote_plus(content)
-        r = post("http://" + self.host + "/REST/1.0/ticket/" + ticketID + "/comment", params=self.credentials,
-                 data=encoded)
+        if attachments:
+            attachments.update({'content': (None, content)})
+            r = post("http://" + self.host + "/REST/1.0/ticket/" + ticketID + "/comment", params=self.credentials,
+                     files=attachments)
+        else:
+            encoded = "content=" + urllib.quote_plus(content)
+            r = post("http://" + self.host + "/REST/1.0/ticket/" + ticketID + "/comment", params=self.credentials,
+                     data=encoded)
         return r.text
 
     def logout(self):
